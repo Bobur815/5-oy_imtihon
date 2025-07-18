@@ -1,0 +1,335 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  STUDENT
+  MENTOR
+  ASSISTANT
+  ADMIN
+}
+
+enum CourseLevel {
+  BEGINNER
+  PRE_INTERMEDIATE
+  UPPER_INTERMEDIATE
+  INTERMEDIATE
+  ADVANCED
+}
+
+enum PaidVia {
+  PAYME
+  CLICK
+  CASH
+}
+
+enum HomeworkSubStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum ExamAnswer {
+  variantA
+  variantB
+  variantC
+  variantD
+}
+
+model User {
+  id        Int     @id @default(autoincrement())
+  phone     String  
+  password  String
+  role      Role    @default(STUDENT)
+  fullName  String
+  image_url String?
+
+  mentorProfile      MentorProfile[]
+  course             Course[]
+  assignedCourse     AssignedCourse[]
+  purchasedCourse    PurchasedCourse[]
+  ratings            Rating[]
+  lastActivity       LastActivity[]
+  lessonView         LessonView[]
+  homeworkSubmission HomeworkSubmission[]
+  examResult         ExamResult[]
+  question           Question[]
+  questionAnswer     QuestionAnswer[]
+
+  createdAt DateTime @default(now()) @db.Timestamp(3)
+
+  @@map("users")
+}
+
+model MentorProfile {
+  id         Int     @id @default(autoincrement())
+  about      String?
+  job        String?
+  experience Int
+  telegram   String?
+  instagram  String?
+  linkedin   String?
+  facebook   String?
+  github     String?
+  website    String?
+  userId     Int     @unique
+  user       User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("mentorprofiles")
+}
+
+model CourseCategory {
+  id        Int      @id @default(autoincrement())
+  name      String
+  createdAt DateTime @default(now()) @db.Timestamp(3)
+  course    Course[]
+
+  @@map("coursecategories")
+}
+
+model Course {
+  id         String      @id @default(uuid())
+  name       String
+  about      String
+  price      Float
+  banner_url String
+  introVideo String?
+  level      CourseLevel
+  published  Boolean     @default(false)
+
+  categoryId Int
+  mentorId   Int 
+
+  assignedCourse  AssignedCourse[]
+  purchasedCourse PurchasedCourse[]
+  ratings         Rating[]
+  lessonModule    LessonModule[]
+  lastActivity    LastActivity[]
+  question        Question[]
+
+  category CourseCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  mentor   User           @relation(fields: [mentorId], references: [id], onDelete: Cascade)
+
+  updatedAt DateTime @updatedAt() @db.Timestamp(3)
+  createdAt DateTime @default(now()) @db.Timestamp(3)
+
+  @@map("courses")
+}
+
+model AssignedCourse {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  courseId  String
+  createdAt DateTime @default(now()) @db.Timestamp(3)
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, courseId])
+  @@map("assignedcourses")
+}
+
+model PurchasedCourse {
+  id          Int      @id @default(autoincrement())
+  courseId    String   
+  userId      Int
+  amount      Float
+  paidVia     PaidVia
+  purchasedAt DateTime @default(now()) @db.Timestamp(3)
+
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("purchasedcourse")
+}
+
+model Rating {
+  id        Int      @id @default(autoincrement())
+  rate      Int
+  comment   String
+  courseId  String   
+  userId    Int
+  createdAt DateTime @default(now()) @db.Timestamp(3)
+
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("ratings")
+}
+
+model LessonModule {
+  id       Int    @id @default(autoincrement())
+  name     String
+  courseId String 
+
+  lastActivity LastActivity[]
+  lessons      Lesson[]
+  exam         Exam[]
+  examResult   ExamResult[]
+  course       Course         @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  createdAt    DateTime       @default(now()) @db.Timestamp(3)
+
+  @@map("lessonmodules")
+}
+
+model Lesson {
+  id        String @id @default(uuid())
+  name      String
+  about     String
+  video_url String
+  moduleId  Int
+
+  updatedAt DateTime @updatedAt() @db.Timestamp(3)
+  createdAt DateTime @default(now()) @db.Timestamp(3)
+
+  lastActivity LastActivity[]
+  lessonView   LessonView[]
+  lessonFile   LessonFile[]
+  homework     Homework[]
+
+  module LessonModule @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+}
+
+model LastActivity {
+  id        Int      @id @default(autoincrement())
+  userId    Int      
+  courseId  String   
+  moduleId  Int
+  lessonId  String   
+  url       String?
+  updatedAt DateTime @updatedAt() @db.Timestamp(3)
+
+  user   User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course Course       @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  module LessonModule @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  lesson Lesson       @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@map("lastactivity")
+}
+
+model LessonView {
+  id       Int     @id @default(autoincrement())
+  lessonId String  
+  userId   Int
+  view     Boolean @default(false)
+
+  lesson Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("lessonviews")
+}
+
+model LessonFile {
+  id        Int      @id @default(autoincrement())
+  file_url  String
+  note      String
+  lessonId  String   
+  createdAt DateTime @default(now()) @db.Timestamp(3)
+
+  lesson Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@map("lessonfiles")
+}
+
+model Homework {
+  id        Int      @id @default(autoincrement())
+  task      String
+  file      String?
+  lessonId  String   @unique
+  updatedAt DateTime @updatedAt() @db.Timestamp(3)
+  createdAt DateTime @default(now()) @db.Timestamp(3)
+
+  lesson Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  homeworkSubmission HomeworkSubmission[]
+
+  @@map("homeworks")
+}
+
+model HomeworkSubmission {
+  id         Int               @id @default(autoincrement())
+  text       String?
+  file_url   String
+  reason     String?
+  status     HomeworkSubStatus @default(PENDING)
+  homeworkId Int
+  userId     Int
+  updatedAt  DateTime          @updatedAt() @db.Timestamp(3)
+  createdAt  DateTime          @default(now()) @db.Timestamp(3)
+
+  homework Homework @relation(fields: [homeworkId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("homeworksubmissions")
+}
+
+model Exam {
+  id             Int        @id @default(autoincrement())
+  question       String
+  optionA        String
+  optionB        String
+  optionC        String
+  optionD        String
+  answer         ExamAnswer
+  lessonModuleId Int
+
+  createdAt DateTime @default(now()) @db.Timestamp(3)
+
+  lessonModule LessonModule @relation(fields: [lessonModuleId], references: [id], onDelete: Cascade)
+
+  @@map("exams")
+}
+
+model ExamResult {
+  id             Int      @id @default(autoincrement())
+  lessonModuleId Int
+  userId         Int
+  passed         Boolean
+  corrects       Int
+  wrongs         Int
+  createdAt      DateTime @default(now()) @db.Timestamp(3)
+
+  lessonModule LessonModule @relation(fields: [lessonModuleId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("examresults")
+}
+
+model Question {
+  id        Int       @id @default(autoincrement())
+  userId    Int
+  courseId  String
+  text      String
+  file_url  String?
+  read      Boolean   @default(false)
+  readAt    DateTime? @db.Timestamp(3)
+  updatedAt DateTime  @updatedAt() @db.Timestamp(3)
+  createdAt DateTime  @default(now()) @db.Timestamp(3)
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  questionAnswer QuestionAnswer[]
+
+  @@map("questions")
+}
+
+model QuestionAnswer {
+  id         Int      @id @default(autoincrement())
+  questionId Int     
+  userId     Int
+  text       String
+  file_url   String?
+  updatedAt  DateTime @updatedAt() @db.Timestamp(3)
+  createdAt  DateTime @default(now()) @db.Timestamp(3)
+
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("questionanswers")
+}
