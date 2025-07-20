@@ -50,7 +50,6 @@ model User {
   image_url String?
 
   mentorProfile      MentorProfile[]
-  course             Course[]
   assignedCourse     AssignedCourse[]
   purchasedCourse    PurchasedCourse[]
   ratings            Rating[]
@@ -103,7 +102,6 @@ model Course {
   published  Boolean     @default(false)
 
   categoryId Int
-  mentorId   Int 
 
   assignedCourse  AssignedCourse[]
   purchasedCourse PurchasedCourse[]
@@ -113,7 +111,6 @@ model Course {
   question        Question[]
 
   category CourseCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-  mentor   User           @relation(fields: [mentorId], references: [id], onDelete: Cascade)
 
   updatedAt DateTime @updatedAt() @db.Timestamp(3)
   createdAt DateTime @default(now()) @db.Timestamp(3)
@@ -144,7 +141,10 @@ model PurchasedCourse {
 
   course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
+  
+  @@unique([userId, courseId])    
+  @@index([userId])
+  @@index([courseId])
   @@map("purchasedcourse")
 }
 

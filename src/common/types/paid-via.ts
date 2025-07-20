@@ -1,0 +1,1 @@
+export { PaidVia } from "@prisma/client"

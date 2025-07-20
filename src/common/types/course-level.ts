@@ -1,0 +1,1 @@
+export { CourseLevel } from '@prisma/client'
