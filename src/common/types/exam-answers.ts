@@ -1,0 +1,1 @@
+export { ExamAnswer } from "@prisma/client"

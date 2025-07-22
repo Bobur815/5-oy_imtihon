@@ -26,10 +26,10 @@ export class UsersController {
     description: 'Numeric ID of the user',
     example: 42,
   })
-  async getById(
+  async getSingle(
     @Param('user_id', ParseIntPipe) user_id: number,
   ) {
-    return this.usersService.getById(user_id);
+    return this.usersService.getSingle(user_id);
   }
 
   @Put(':user_id')

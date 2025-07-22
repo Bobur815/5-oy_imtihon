@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Put, Request, UseGuards } from '@nestjs/common';
 import { RatingService } from './rating.service';
-import { Public } from 'src/common/decorators.ts/public.decorators';
+import { Public } from 'src/common/decorators/public.decorators';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { CreateRatingDto, UpdateRatingDto } from './dto/dto';
 import { RequestWithUser } from 'src/common/types/request-with-user';

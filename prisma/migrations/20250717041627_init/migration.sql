@@ -336,3 +336,11 @@ ALTER TABLE "questionanswers" ADD CONSTRAINT "questionanswers_questionId_fkey" F
 
 -- AddForeignKey
 ALTER TABLE "questionanswers" ADD CONSTRAINT "questionanswers_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- 1) If your courses.id is still Int, convert it first:
+ALTER TABLE "courses" 
+  ALTER COLUMN "id" TYPE VARCHAR USING "id"::VARCHAR;
+
+-- 2) Now convert lessonmodules.courseId from Int→String:
+ALTER TABLE "lessonmodules"
+  ALTER COLUMN "courseId" TYPE VARCHAR USING "courseId"::VARCHAR;

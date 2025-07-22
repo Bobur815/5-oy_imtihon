@@ -141,7 +141,7 @@ model PurchasedCourse {
 
   course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+
   @@unique([userId, courseId])    
   @@index([userId])
   @@index([courseId])
@@ -163,19 +163,20 @@ model Rating {
 }
 
 model LessonModule {
-  id       Int    @id @default(autoincrement())
-  name     String
-  courseId String 
+  id          Int          @id @default(autoincrement())
+  title       String
+  order       Int
+  courseId    String
 
-  lastActivity LastActivity[]
-  lessons      Lesson[]
-  exam         Exam[]
-  examResult   ExamResult[]
-  course       Course         @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  createdAt    DateTime       @default(now()) @db.Timestamp(3)
+  course      Course       @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  lessons     Lesson[]
+  exams       Exam[]
+  examResults ExamResult[]
+  lastActivities LastActivity[]
 
   @@map("lessonmodules")
 }
+
 
 model Lesson {
   id        String @id @default(uuid())

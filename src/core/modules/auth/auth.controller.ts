@@ -3,7 +3,7 @@ import { ApiTags, ApiOperation, ApiBody, ApiCreatedResponse, ApiOkResponse, } fr
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
-import { Public } from 'src/common/decorators.ts/public.decorators';
+import { Public } from 'src/common/decorators/public.decorators';
 
 @ApiTags('Auth')
 @Controller('auth')

@@ -1,55 +1,80 @@
-import { FileFieldsInterceptor, FileInterceptor } from "@nestjs/platform-express";
-import { diskStorage } from "multer";
+import { FileFieldsInterceptor, FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import { Request } from 'express';
 
-export function AvatarUpload() {
-    return FileInterceptor('image_url', {
-        storage: diskStorage({
-            destination: 'src/common/uploads/avatars',
-            filename: (req, file, cb) => {
-                const timestamp = Date.now();
-                const originalName = file.originalname.replace(/\s+/g, '_')
-                cb(null, `${timestamp}-${originalName}`)
-            },
-        }),
-        fileFilter: (req, file, cb) => {
-
-            if (!file.mimetype.match(/^image\/(jpg|jpeg|png)$/)) {
-                return cb(new Error("Only image files (jpg, jpeg, png) are allowed"), false);
-            }
-            cb(null, true);
-
-        }
-    })
+function filenameGenerator(req: Request, file: Express.Multer.File, cb: (err: Error | null, name: string) => void) {
+  const timestamp = Date.now();
+  const clean = file.originalname.replace(/\s+/g, '_');
+  cb(null, `${timestamp}-${clean}`);
 }
 
-export function filesUploader(){
-    return FileFieldsInterceptor(
-    [
-        { name: 'banner_url', maxCount: 1 },
-        { name: 'introVideo', maxCount: 1 },
-    ],
-    {
-        storage: diskStorage({ 
-            destination: 'src/common/uploads/course-files',
-            filename: (req, file, cb) => {
-                const timestamp = Date.now();
-                const originalName = file.originalname.replace(/\s+/g, '_')
-                cb(null, `${timestamp}-${originalName}`)
-            },
-        }),
-        fileFilter: (req, file, cb) => {
-        if (file.fieldname === 'banner_url') {
-            return /^image\/(jpg|jpeg|png)$/.test(file.mimetype)
-            ? cb(null, true)
-            : cb(new Error('Only JPG/PNG allowed'), false);
-        }
-        if (file.fieldname === 'introVideo') {
-            return /^video\/(mp4|mov|webm)$/.test(file.mimetype)
-            ? cb(null, true)
-            : cb(new Error('Only MP4/MOV/WEBM allowed'), false);
-        }
-        cb(null, false);
-        },
+function makeStorage(dest: string) {
+  return diskStorage({
+    destination: dest,
+    filename: filenameGenerator,
+  });
+}
+
+function makeSingleUpload(
+  field: string,
+  dest: string,
+  allowed: RegExp,
+) {
+  return FileInterceptor(field, {
+    storage: makeStorage(dest),
+    fileFilter: (_req, file, cb) => {
+      allowed.test(file.mimetype)
+        ? cb(null, true)
+        : cb(new Error(`Only ${allowed} files allowed`), false);
     },
-    )
+  });
 }
+
+function makeMultiUpload(
+  fields: { name: string; maxCount: number }[],
+  dest: string,
+  allowedMap: Record<string, RegExp>,
+) {
+  return FileFieldsInterceptor(fields, {
+    storage: makeStorage(dest),
+    fileFilter: (_req, file, cb) => {
+      const rule = allowedMap[file.fieldname];
+      if (!rule) return cb(null, false);
+      rule.test(file.mimetype)
+        ? cb(null, true)
+        : cb(new Error(`Only ${rule} for ${file.fieldname}`), false);
+    },
+  });
+}
+
+export const AvatarUpload = () =>
+  makeSingleUpload('image_url', 'src/common/uploads/avatars', /^image\/(jpg|jpeg|png)$/);
+
+export const lessonVideoUpload = () =>
+  makeSingleUpload('video_url', 'src/common/uploads/lesson-videos', /^video\/(mp4|mov|webm)$/);
+
+export const lessonFileUpload = () =>
+  makeSingleUpload('file_url', 'src/common/uploads/lesson-files', /^application\/(pdf|docx?|txt)$/);
+
+export const homeworkFileUpload = () =>
+  makeSingleUpload('file', 'src/common/uploads/homework-files', /^application\/(pdf|docx?|txt)$/);
+
+export const homeworkSubmissionFileUpload = () => 
+    makeSingleUpload('file_url', 'src/common/uploads/homework-submission-files', /^application\/(pdf|docx?|txt)$/);
+export const questionFileUpload = () => 
+    makeSingleUpload('file_url', 'src/common/uploads/questions-files', /^application\/(pdf|docx?|txt)$/); 
+export const questionAnswerFileUpload = () => 
+    makeSingleUpload('file_url', 'src/common/uploads/question-answer-files', /^application\/(pdf|docx?|txt)$/); 
+
+export const filesUploader = () =>
+  makeMultiUpload(
+    [
+      { name: 'banner_url', maxCount: 1 },
+      { name: 'introVideo', maxCount: 1 },
+    ],
+    'src/common/uploads/course-files',
+    {
+      banner_url: /^image\/(jpg|jpeg|png)$/,
+      introVideo: /^video\/(mp4|mov|webm)$/,
+    },
+  );

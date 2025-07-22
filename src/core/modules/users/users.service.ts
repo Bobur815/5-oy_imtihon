@@ -13,7 +13,7 @@ export class UsersService {
         return users
     }
 
-    async getById(user_id: number) {
+    async getSingle(user_id: number) {
         const user = await this.prisma.user.findUnique({
             where: { id: user_id },
             select: {
@@ -41,7 +41,7 @@ export class UsersService {
         }
 
         if (image_url && user.image_url) {
-            await removeOldAvatar('user',user.image_url);
+            removeOldAvatar('user',user.image_url);
         }
 
         if (user.role === 'STUDENT') {

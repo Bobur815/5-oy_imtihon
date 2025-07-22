@@ -4,7 +4,6 @@ import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import * as bcrypt from 'bcrypt'
 import { JwtService, JwtSignOptions } from '@nestjs/jwt';
-import { UserRole } from 'src/common/types/user-role';
 import { RedisService } from 'src/common/redis/redis.service';
 import { ConfigService } from '@nestjs/config';
 import { VerificationService } from '../verification/verification.service';

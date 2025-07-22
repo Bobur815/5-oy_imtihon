@@ -3,7 +3,7 @@ import { VerificationService } from './verification.service';
 import { ApiProperty } from '@nestjs/swagger';
 import { SendOtpDto, VerifyOtpDto } from './dto/verification.dto';
 import { EVerificationTypes } from 'src/common/types/everificationtype';
-import { Public } from 'src/common/decorators.ts/public.decorators';
+import { Public } from 'src/common/decorators/public.decorators';
 
 @Controller('verification')
 export class VerificationController {
