@@ -2,23 +2,29 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { responseMessage } from 'src/common/utils/response.message';
 import { PrismaService } from 'src/core/database/prisma.service';
 import { CreateLessonViewDto, UpdateLessonViewDto } from './dto/dto';
+import { RequestWithUser } from 'src/common/types/request-with-user';
+import { Prisma, Role } from '@prisma/client';
 
 @Injectable()
 export class LessonViewService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async getAll() {
+  async getAll(user:RequestWithUser['user']) {
+    let where: Prisma.LessonViewWhereInput = {}
+    if(user.role === Role.STUDENT){
+        where = {userId:user.id}
+    }
+
     const lessonViews = await this.prisma.lessonView.findMany({
       include: {
         user: true,
         lesson: true,
-      },
+      }, where
     });
     return responseMessage('', lessonViews);
   }
 
-  async create(data: CreateLessonViewDto) {
-    const user = await this.prisma.user.findUnique({ where: { id: data.userId } });
+  async create(user:RequestWithUser['user'], data: CreateLessonViewDto) {
     const lesson = await this.prisma.lesson.findUnique({ where: { id: data.lessonId } });
 
     if (!user) throw new NotFoundException('User not found');
@@ -26,7 +32,7 @@ export class LessonViewService {
 
     const newView = await this.prisma.lessonView.create({
       data: {
-        userId: data.userId,
+        userId: user.id,
         lessonId: data.lessonId,
         view: data.view ?? false,
       },

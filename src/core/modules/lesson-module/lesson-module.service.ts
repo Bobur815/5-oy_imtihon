@@ -22,7 +22,7 @@ export class LessonModuleService {
         const module = await this.prisma.lessonModule.findUnique({
             where: { id },
             include: {
-                course: { select: { name: true } }
+                course: true
             }
         })
         if(!module) throw new NotFoundException(`Lesson module with ID ${ id } not found`)

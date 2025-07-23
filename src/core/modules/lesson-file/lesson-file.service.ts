@@ -3,6 +3,7 @@ import { responseMessage } from 'src/common/utils/response.message';
 import { PrismaService } from 'src/core/database/prisma.service';
 import { CreateLessonFileDto, UpdateLessonFileDto } from './dto/dto';
 import { removeOldAvatar } from 'src/common/utils/remove-old-picture';
+import { RequestWithUser } from 'src/common/types/request-with-user';
 
 @Injectable()
 export class LessonFileService {
@@ -12,7 +13,6 @@ export class LessonFileService {
         const lessonFiles = await this.prisma.lessonFile.findMany({
             include: { lesson: true },
         });
-
         return responseMessage("", lessonFiles)
     }
 

@@ -7,10 +7,6 @@ export class HomeworkSubmissionDto {
     @Type(() => Number)
     homeworkId:number
 
-    @IsNotEmpty()
-    @Type(() => Number)
-    userId:number
-
     @IsOptional()
     text?:string
 

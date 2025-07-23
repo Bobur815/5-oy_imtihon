@@ -1,9 +1,11 @@
-import {  Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBody, ApiParam } from '@nestjs/swagger';
+import {  Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, Request } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiBody, ApiParam, ApiBearerAuth } from '@nestjs/swagger';
 import { LastActivityService } from './last-activity.service';
 import { CreateLastActivityDto, UpdateLastActivityDto } from './dto/last-activitydto';
+import { RequestWithUser } from 'src/common/types/request-with-user';
 
 @ApiTags('last-activity')
+@ApiBearerAuth()
 @Controller('last-activity')
 export class LastActivityController {
   constructor(private readonly lastActivityService: LastActivityService) {}
@@ -11,8 +13,8 @@ export class LastActivityController {
   @Get()
   @ApiOperation({ summary: 'Get all last-activity records' })
   @ApiResponse({ status: 200, description: 'List of last-activity records returned.' })
-  getAll() {
-    return this.lastActivityService.getAll();
+  getAll(@Request() req: RequestWithUser) {
+    return this.lastActivityService.getAll(req.user);
   }
 
   @Post()

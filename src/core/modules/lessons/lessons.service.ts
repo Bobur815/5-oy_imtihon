@@ -3,19 +3,38 @@ import { responseMessage } from 'src/common/utils/response.message';
 import { PrismaService } from 'src/core/database/prisma.service';
 import { CreateLessonDto, UpdateLessonDto } from './dto/dto';
 import { removeOldAvatar } from 'src/common/utils/remove-old-picture';
+import { RequestWithUser } from 'src/common/types/request-with-user';
+import { Prisma, Role } from '@prisma/client';
 
 @Injectable()
 export class LessonsService {
     constructor(private readonly prisma: PrismaService) { }
 
-    async getAll() {
-        const lessons = await this.prisma.lesson.findMany()
+    async getAll(user: RequestWithUser['user']) {
+        let where: Prisma.LessonWhereInput = {}
+        // Studentlar uchun faqat sotib olgan lessonning video fayli ko'rinadi
+        if (user.role === Role.STUDENT) {
+            where.module!.course!.purchasedCourse = { some: { userId: user.id } }
+        }
+        const lessons = await this.prisma.lesson.findMany({
+            include: {
+                lessonFile: true
+            }, where
+        })
         return responseMessage("", lessons)
     }
 
-    async getSingle(id: string) {
-        const lesson = await this.prisma.lesson.findUnique({
-            where: { id }
+    async getSingle(user: RequestWithUser['user'], id: string) {
+        let where: Prisma.LessonWhereInput = { id }
+        // Studentlar uchun faqat sotib olgan lessonning video fayli ko'rinadi
+        if (user.role === Role.STUDENT) {
+            where.module!.course!.purchasedCourse = { some: { userId: user.id } }
+        }
+        const lesson = await this.prisma.lesson.findFirst({
+            include:{
+                lessonFile:true
+            },
+            where
         })
         if (!lesson) throw new NotFoundException(`Lesson with ID ${id} not found`)
 

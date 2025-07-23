@@ -12,15 +12,6 @@ export class PurchasedCourseDto {
   courseId: string;
 
   @ApiProperty({
-    description: 'Numeric ID of the user who purchased the course',
-    example: 42,
-  })
-  @IsNotEmpty()
-  @IsNumber()
-  @Type(() => Number)
-  userId: number;
-
-  @ApiProperty({
     description: 'Amount paid for the course',
     example: 99.99,
   })

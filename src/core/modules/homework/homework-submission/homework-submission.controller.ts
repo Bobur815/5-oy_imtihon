@@ -1,43 +1,74 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, Request, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import { ApiTags, ApiBearerAuth, ApiOperation, ApiParam, ApiBody } from '@nestjs/swagger';
 import { HomeworkSubmissionService } from './homework-submission.service';
 import { HomeworkSubmissionDto, UpdateHomeworkSubmissionDto } from './dto/dto';
 import { homeworkSubmissionFileUpload } from 'src/common/utils/avatar.upload';
+import { RolesGuard } from 'src/common/guards/roles.guard';
+import { Roles } from 'src/common/decorators/roles.decorator';
+import { Role } from '@prisma/client';
+import { RequestWithUser } from 'src/common/types/request-with-user';
 
+@ApiTags('Homework Submission')
+@ApiBearerAuth()
 @Controller('homework-submission')
 export class HomeworkSubmissionController {
-    constructor(private readonly homeworkSubmissionService: HomeworkSubmissionService){}
+  constructor(private readonly homeworkSubmissionService: HomeworkSubmissionService) {}
 
-    @Get()
-    getAll(){
-        return this.homeworkSubmissionService.getAll()
-    }
+  @Get()
+  @ApiOperation({ summary: 'List submissions' })
+  getAll(@Request() req: RequestWithUser) {
+    return this.homeworkSubmissionService.getAll(req.user);
+  }
 
-    @Get(':id')
-    getSingle(@Param('id',ParseIntPipe) id: number){
-        return this.homeworkSubmissionService.getSingle(id)
-    }
+  @Get(':id')
+  @ApiOperation({ summary: 'Get submission' })
+  @ApiParam({ name: 'id', type: Number })
+  getSingle(
+    @Request() req: RequestWithUser,
+    @Param('id', ParseIntPipe) id: number
+  ) {
+    return this.homeworkSubmissionService.getSingle(req.user, id);
+  }
 
-    @Post()
-    @UseInterceptors(homeworkSubmissionFileUpload())
-    create(
-        @UploadedFile() file: Express.Multer.File,
-        @Body() payload: HomeworkSubmissionDto
-    ){
-        return this.homeworkSubmissionService.create(payload,file.filename)
-    }
+  @Post()
+  @ApiOperation({ summary: 'Upload submission' })
+  @ApiBody({ type: HomeworkSubmissionDto })
+  @UseGuards(RolesGuard)
+  @Roles(Role.STUDENT)
+  @UseInterceptors(homeworkSubmissionFileUpload())
+  create(
+    @Request() req: RequestWithUser,
+    @UploadedFile() file: Express.Multer.File,
+    @Body() payload: HomeworkSubmissionDto
+  ) {
+    return this.homeworkSubmissionService.create(req.user, payload, file.filename);
+  }
 
-    @Put(':id')
-    @UseInterceptors(homeworkSubmissionFileUpload())
-    update(
-        @Param('id',ParseIntPipe) id: number,
-        @UploadedFile() file: Express.Multer.File,
-        @Body() payload: UpdateHomeworkSubmissionDto
-    ){
-        return this.homeworkSubmissionService.update(id,payload,file?.filename)
-    }
+  @Put(':id')
+  @ApiOperation({ summary: 'Update submission' })
+  @ApiParam({ name: 'id', type: Number })
+  @ApiBody({ type: UpdateHomeworkSubmissionDto })
+  @UseGuards(RolesGuard)
+  @Roles(Role.STUDENT)
+  @UseInterceptors(homeworkSubmissionFileUpload())
+  update(
+    @Request() req: RequestWithUser,
+    @Param('id', ParseIntPipe) id: number,
+    @UploadedFile() file: Express.Multer.File,
+    @Body() payload: UpdateHomeworkSubmissionDto
+  ) {
+    return this.homeworkSubmissionService.update(req.user, id, payload, file?.filename);
+  }
 
-    @Delete(':id')
-    delete(@Param('id',ParseIntPipe) id: number,){
-        return this.homeworkSubmissionService.delete(id)
-    }
+  @Delete(':id')
+  @ApiOperation({ summary: 'Delete submission' })
+  @ApiParam({ name: 'id', type: Number })
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN)
+  delete(
+    @Request() req: RequestWithUser,
+    @Param('id', ParseIntPipe) id: number
+  ) {
+    return this.homeworkSubmissionService.delete(req.user, id);
+  }
 }

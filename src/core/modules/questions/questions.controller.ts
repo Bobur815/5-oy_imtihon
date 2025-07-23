@@ -1,5 +1,5 @@
 import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, UploadedFile, UseInterceptors, HttpCode, HttpStatus, Request, UseGuards } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiConsumes, ApiBody } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiConsumes, ApiBody, ApiBearerAuth } from '@nestjs/swagger';
 import { QuestionsService } from './questions.service';
 import { CreateQuestionDto, UpdateQuestionDto } from './dto/dto';
 import { questionFileUpload } from 'src/common/utils/avatar.upload';
@@ -8,6 +8,7 @@ import { RolesGuard } from 'src/common/guards/roles.guard';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { Role } from '@prisma/client';
 
+@ApiBearerAuth()
 @ApiTags('questions')
 @Controller('questions')
 export class QuestionsController {
@@ -27,6 +28,8 @@ export class QuestionsController {
     }
 
     @Post()
+    @UseGuards(RolesGuard)
+    @Roles(Role.STUDENT)
     @UseInterceptors(questionFileUpload())
     @ApiOperation({ summary: 'Create a new question (optionally with file)' })
     @ApiConsumes('multipart/form-data')
@@ -39,6 +42,8 @@ export class QuestionsController {
     }
 
     @Put(':id')
+    @UseGuards(RolesGuard)
+    @Roles(Role.STUDENT)
     @UseInterceptors(questionFileUpload())
     @ApiOperation({ summary: 'Update a question (optionally with new file)' })
     @ApiParam({ name: 'id', type: Number, description: 'Question ID' })
@@ -52,6 +57,8 @@ export class QuestionsController {
     }
 
     @Delete(':id')
+    @UseGuards(RolesGuard)
+    @Roles(Role.STUDENT,Role.ADMIN)
     @ApiOperation({ summary: 'Delete a question' })
     @ApiParam({ name: 'id', type: Number, description: 'Question ID' })
     delete(@Param('id', ParseIntPipe) id: number) {

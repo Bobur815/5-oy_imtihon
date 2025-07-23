@@ -1,22 +1,29 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Put, Req, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Put, Query, Req, Request, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { UpdateProfileDto } from './dto/update-profile.dto';
-import { ApiBadRequestResponse, ApiBody, ApiConsumes, ApiNoContentResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
+import { ApiBadRequestResponse, ApiBearerAuth, ApiBody, ApiConsumes, ApiNoContentResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { AvatarUpload } from 'src/common/utils/avatar.upload';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { JwtService } from '@nestjs/jwt';
+import { RequestWithUser } from 'src/common/types/request-with-user';
+import { RolesGuard } from 'src/common/guards/roles.guard';
+import { Roles } from 'src/common/decorators/roles.decorator';
+import { Role } from '@prisma/client';
+import { UserFilterDto } from './dto/users-filter.dto';
 
 @ApiTags('Users')
+@ApiBearerAuth()
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService, private jwtService:JwtService) {}
 
   @Get()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN)
   @ApiOperation({ summary: 'Retrieve all users' })
-  getAllUsers() {
-    return this.usersService.getAllUsers();
+  getAllUsers(@Request() req:RequestWithUser, @Query() filters: UserFilterDto) {
+    return this.usersService.getAllUsers(req.user, filters);
   }
 
   @Get(':user_id')

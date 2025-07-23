@@ -1,5 +1,5 @@
 import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, Request, UseGuards, } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiBody, } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiBody, ApiBearerAuth, } from '@nestjs/swagger';
 import { ExamResultService } from './exam-result.service';
 import { CreateExamResultDto, UpdateExamResultDto } from './dto/dto';
 import { RequestWithUser } from 'src/common/types/request-with-user';
@@ -8,6 +8,7 @@ import { Role } from '@prisma/client';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 
 @ApiTags('exam-results')
+@ApiBearerAuth()
 @Controller('exam-results')
 export class ExamResultController {
     constructor(private readonly examResultService: ExamResultService) { }
@@ -52,6 +53,8 @@ export class ExamResultController {
     }
 
     @Delete(':id')
+    @UseGuards(RolesGuard)
+    @Roles(Role.ADMIN,Role.MENTOR)
     @ApiOperation({ summary: 'Delete an exam result' })
     @ApiParam({ name: 'id', type: Number, description: 'ExamResult ID' })
     delete(@Param('id', ParseIntPipe) id: number) {

@@ -1,5 +1,5 @@
 import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, Request, UseGuards, } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiParam, ApiBody, } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiParam, ApiBody, ApiBearerAuth, } from '@nestjs/swagger';
 import { ExamService } from './exam.service';
 import { CreateExamDto, UpdateExamDto } from './dto/dto';
 import { Exam as ExamModel, Role } from '@prisma/client';
@@ -8,6 +8,7 @@ import { RolesGuard } from 'src/common/guards/roles.guard';
 import { RequestWithUser } from 'src/common/types/request-with-user';
 
 @ApiTags('exams')
+@ApiBearerAuth()
 @Controller('exams')
 export class ExamController {
     constructor(private readonly examService: ExamService) { }

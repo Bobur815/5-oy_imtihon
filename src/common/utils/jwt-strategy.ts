@@ -20,6 +20,6 @@ export class JwtStrategy extends PassportStrategy(Strategy){
             throw new UnauthorizedException();
         }
 
-        return { id: payload.id, username: payload.phone, role: user.role };
+        return { id: payload.id, username: payload.phone, role: user.data!.role };
     }
 }

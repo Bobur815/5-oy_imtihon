@@ -10,13 +10,6 @@ export class CreateLessonViewDto {
   lessonId: string;
 
   @ApiProperty({
-    description: 'ID of the user who viewed the lesson',
-    example: 42,
-  })
-  @IsInt()
-  userId: number;
-
-  @ApiProperty({
     description: 'Whether the lesson has been viewed',
     example: true,
     required: false,

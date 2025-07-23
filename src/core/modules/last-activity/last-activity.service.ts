@@ -2,20 +2,29 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { responseMessage } from 'src/common/utils/response.message';
 import { PrismaService } from 'src/core/database/prisma.service';
 import { CreateLastActivityDto, UpdateLastActivityDto } from './dto/last-activitydto';
+import { RequestWithUser } from 'src/common/types/request-with-user';
+import { Prisma, Role } from '@prisma/client';
 
 @Injectable()
 export class LastActivityService {
     constructor(private readonly prisma: PrismaService) { }
 
-    async getAll() {
+    async getAll(user: RequestWithUser['user']) {
+        let where: Prisma.LastActivityWhereInput = {}
+        if (user.role !== Role.ADMIN) {
+            where = { id: user.id }
+        }
+
         const lastActivities = await this.prisma.lastActivity.findMany({
             include: {
                 user: true,
                 course: true,
                 lesson: true,
                 module: true
-            }
+            }, 
+            where
         });
+        
         return responseMessage("", lastActivities)
     }
 

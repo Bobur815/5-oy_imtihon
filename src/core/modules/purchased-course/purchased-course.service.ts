@@ -3,12 +3,19 @@ import { responseMessage } from 'src/common/utils/response.message';
 import { PrismaService } from 'src/core/database/prisma.service';
 import { PurchasedCourseDto, UpdatePurchasedCourseDto } from './dto/dto';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
+import { RequestWithUser } from 'src/common/types/request-with-user';
+import { Prisma, Role } from '@prisma/client';
 
 @Injectable()
 export class PurchasedCourseService {
     constructor(private readonly prisma: PrismaService) { }
 
-    async getAll() {
+    async getAll(user: RequestWithUser['user']) {
+        let where: Prisma.PurchasedCourseWhereInput = {}
+        if(user.role === Role.STUDENT){
+            where = {userId:user.id}
+        }
+
         const purchasedCourses = await this.prisma.purchasedCourse.findMany({
             include: {
                 course: {
@@ -22,12 +29,12 @@ export class PurchasedCourseService {
                         role: true
                     }
                 }
-            }
+            }, where
         })
         return responseMessage("", purchasedCourses)
     }
 
-    async create(payload: PurchasedCourseDto) {
+    async create(user: RequestWithUser['user'], payload: PurchasedCourseDto) {
         try {
             const result = await this.prisma.$transaction(async (prisma) => {
                 const course = await prisma.course.findUnique({
@@ -39,12 +46,9 @@ export class PurchasedCourseService {
                     );
                 }
 
-                const user = await prisma.user.findUnique({
-                    where: { id: payload.userId },
-                });
-                if (!user) {
+                if (!user.id) {
                     throw new NotFoundException(
-                        `User with ID ${payload.userId} not found`,
+                        `User with ID ${user.id} not found`,
                     );
                 }
 
@@ -54,7 +58,7 @@ export class PurchasedCourseService {
 
                 const purchase = await prisma.purchasedCourse.create({
                     data: {
-                        userId: payload.userId,
+                        userId: user.id,
                         courseId: payload.courseId,
                         amount: payload.amount,
                         paidVia: payload.paidVia,
@@ -72,20 +76,19 @@ export class PurchasedCourseService {
                 (err.meta?.target as string[]).includes('userId_courseId')
             ) {
                 throw new ConflictException(
-                    `User ${payload.userId} has already purchased course ${payload.courseId}`,
+                    `User ${user.id} has already purchased course ${payload.courseId}`,
                 );
             }
             throw err;
         }
     }
 
-    async update(id: number, payload: UpdatePurchasedCourseDto) {
+    async update(user: RequestWithUser['user'], id: number, payload: UpdatePurchasedCourseDto) {
         const existing = await this.prisma.purchasedCourse.findUnique({ where: { id } });
         if (!existing) {
             throw new NotFoundException(`Purchase ${id} not found`);
         }
 
-        const newUserId = payload.userId ?? existing.userId;
         const newCourseId = payload.courseId ?? existing.courseId;
         const newAmount = payload.amount ?? existing.amount;
         const newPaidVia = payload.paidVia ?? existing.paidVia;
@@ -99,15 +102,13 @@ export class PurchasedCourseService {
             throw new ConflictException('Insufficient amount');
         }
 
-        const user = await this.prisma.user.findUnique({ where: { id: newUserId } });
-        if (!user) {
-            throw new NotFoundException(`User ${newUserId} not found`);
+        if (!user.id) {
+            throw new NotFoundException(`User with ID ${user.id} not found`);
         }
 
         const updated = await this.prisma.purchasedCourse.update({
             where: { id },
             data: {
-                userId: newUserId,
                 courseId: newCourseId,
                 amount: newAmount,
                 paidVia: newPaidVia,

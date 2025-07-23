@@ -1,10 +1,11 @@
 import { Body, Controller, Post } from '@nestjs/common';
 import { VerificationService } from './verification.service';
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiTags } from '@nestjs/swagger';
 import { SendOtpDto, VerifyOtpDto } from './dto/verification.dto';
 import { EVerificationTypes } from 'src/common/types/everificationtype';
 import { Public } from 'src/common/decorators/public.decorators';
 
+@ApiTags('Verification')
 @Controller('verification')
 export class VerificationController {
     constructor(private readonly verificationService: VerificationService){}
