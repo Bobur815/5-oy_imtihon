@@ -2,31 +2,34 @@
 FROM node:18-alpine AS builder
 WORKDIR /app
 
-# 1. Install deps
+# 1. Copy package manifests & install deps
 COPY package.json package-lock.json ./
 RUN npm ci
 
-# 2. Copy code & generate Prisma client
+# 2. Copy Nest/TypeScript config
+COPY tsconfig.json tsconfig.build.json nest-cli.json ./
+
+# 3. Copy Prisma schema & generate client
 COPY prisma ./prisma
-COPY src ./src
 RUN npx prisma generate
 
-# 3. Build
-RUN npm run build
+# 4. Copy source code
+COPY src ./src
+
+# 5. Build your Nest app
+RUN npm run build   # now tsconfig.json is present, so this will succeed
 
 # ── 2) Runtime ──────────────────────────────────────────────
 FROM node:18-alpine
 WORKDIR /app
 
-# Copy built assets + prod deps
+# 1. Copy package manifests & install only prod deps
 COPY package.json package-lock.json ./
 RUN npm ci --production
 
+# 2. Copy compiled app + Prisma client + schema
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/prisma ./prisma
-
-# Generate client at runtime (ensures matching schema)
-RUN npx prisma generate
 
 EXPOSE 3000
 CMD ["node", "dist/main.js"]
