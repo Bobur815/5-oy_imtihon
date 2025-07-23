@@ -28,9 +28,9 @@ jobs:
                 echo "Cloning repository over HTTPS"
                 git clone https://github.com/Bobur815/5-oy_imtihon.git .
             else
-                echo "Fetching and resetting to origin/main"
+                echo "Fetching and resetting to origin/master"
                 git fetch origin
-                git reset --hard origin/main
+                git reset --hard origin/master
             fi
 
 
