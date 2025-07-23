@@ -1,0 +1,48 @@
+version: '3.9'
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: 5-oy-imtihon
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      -"5432:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    restart: always
+    volumes:
+      - redis-data:/data
+
+  app:
+    build:
+      container_name: 5-oy_imtihon
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    depends_on:
+      - db
+      - redis
+    ports:
+      - '3000:3000'
+    environment:
+      NODE_ENV: production
+      # Prisma
+      DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}?schema=public
+      # Redis for OTP/session
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      # JWT secrets
+      JWT_ACCESS_TOKEN_SECRET: ${JWT_ACCESS_TOKEN_SECRET}
+      JWT_REFRESH_TOKEN_SECRET: ${JWT_REFRESH_TOKEN_SECRET}
+      # OTP SMS provider
+      OTP_SMS_API_KEY: ${OTP_SMS_API_KEY}
+
+volumes:
+  db-data:
+  redis-data:
