@@ -28,9 +28,11 @@ jobs:
                 echo "Cloning repository over HTTPS"
                 git clone https://github.com/Bobur815/5-oy_imtihon.git .
             else
-                echo "Pulling latest changes over HTTPS"
-                git pull origin main --rebase
+                echo "Fetching and resetting to origin/main"
+                git fetch origin
+                git reset --hard origin/main
             fi
+
 
             echo "Stopping containers"
             docker compose down --remove-orphans
