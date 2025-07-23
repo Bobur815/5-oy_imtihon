@@ -24,13 +24,12 @@ jobs:
             mkdir -p /home/${{ secrets.SSH_USER }}/5-oy_imtihon
             cd /home/${{ secrets.SSH_USER }}/5-oy_imtihon
 
-            if [ ! -d .git ]; then
-              echo "Cloning repository"
-              git clone git@github.com:Bobur815/5-oy_imtihon.git .
+             if [ ! -d .git ]; then
+                echo "Cloning repository over HTTPS"
+                git clone https://github.com/Bobur815/5-oy_imtihon.git .
             else
-              echo "Pulling latest changes"
-              git fetch origin
-              git reset --hard origin/main
+                echo "Pulling latest changes over HTTPS"
+                git pull origin main --rebase
             fi
 
             echo "Stopping containers"
