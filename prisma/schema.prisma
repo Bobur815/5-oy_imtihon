@@ -43,7 +43,7 @@ enum ExamAnswer {
 
 model User {
   id        Int     @id @default(autoincrement())
-  phone     String  
+  phone     String
   password  String
   role      Role    @default(STUDENT)
   fullName  String
@@ -59,6 +59,7 @@ model User {
   examResult         ExamResult[]
   question           Question[]
   questionAnswer     QuestionAnswer[]
+  transactions       Transaction[]
 
   createdAt DateTime @default(now()) @db.Timestamp(3)
 
@@ -109,11 +110,12 @@ model Course {
   lessonModule    LessonModule[]
   lastActivity    LastActivity[]
   question        Question[]
+  transactions    Transaction[]
 
   category CourseCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
 
-  updatedAt DateTime @updatedAt() @db.Timestamp(3)
-  createdAt DateTime @default(now()) @db.Timestamp(3)
+  updatedAt   DateTime      @updatedAt() @db.Timestamp(3)
+  createdAt   DateTime      @default(now()) @db.Timestamp(3)
 
   @@map("courses")
 }
@@ -133,7 +135,7 @@ model AssignedCourse {
 
 model PurchasedCourse {
   id          Int      @id @default(autoincrement())
-  courseId    String   
+  courseId    String
   userId      Int
   amount      Float
   paidVia     PaidVia
@@ -142,17 +144,36 @@ model PurchasedCourse {
   course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([userId, courseId])    
+  @@unique([userId, courseId])
   @@index([userId])
   @@index([courseId])
   @@map("purchasedcourse")
+}
+
+model Transaction {
+  id           String    @id @default(uuid())
+  pid          String    @unique
+  amount       Decimal
+  perform_time DateTime?
+  create_time  DateTime?
+  cancel_time  DateTime?
+
+  state  Int
+  reason Int?
+  userId Int?
+  user   User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  courseId String?
+  course   Course? @relation(fields: [courseId], references: [id], onDelete: SetNull)
+
+  @@map("transactions")
 }
 
 model Rating {
   id        Int      @id @default(autoincrement())
   rate      Int
   comment   String
-  courseId  String   
+  courseId  String
   userId    Int
   createdAt DateTime @default(now()) @db.Timestamp(3)
 
@@ -163,20 +184,19 @@ model Rating {
 }
 
 model LessonModule {
-  id          Int          @id @default(autoincrement())
-  title       String
-  order       Int
-  courseId    String
+  id       Int    @id @default(autoincrement())
+  title    String
+  order    Int
+  courseId String
 
-  course      Course       @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  lessons     Lesson[]
-  exams       Exam[]
-  examResults ExamResult[]
+  course         Course         @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  lessons        Lesson[]
+  exams          Exam[]
+  examResults    ExamResult[]
   lastActivities LastActivity[]
 
   @@map("lessonmodules")
 }
-
 
 model Lesson {
   id        String @id @default(uuid())
@@ -198,10 +218,10 @@ model Lesson {
 
 model LastActivity {
   id        Int      @id @default(autoincrement())
-  userId    Int      
-  courseId  String   
+  userId    Int
+  courseId  String
   moduleId  Int
-  lessonId  String   
+  lessonId  String
   url       String?
   updatedAt DateTime @updatedAt() @db.Timestamp(3)
 
@@ -215,7 +235,7 @@ model LastActivity {
 
 model LessonView {
   id       Int     @id @default(autoincrement())
-  lessonId String  
+  lessonId String
   userId   Int
   view     Boolean @default(false)
 
@@ -229,7 +249,7 @@ model LessonFile {
   id        Int      @id @default(autoincrement())
   file_url  String
   note      String
-  lessonId  String   
+  lessonId  String
   createdAt DateTime @default(now()) @db.Timestamp(3)
 
   lesson Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
@@ -322,7 +342,7 @@ model Question {
 
 model QuestionAnswer {
   id         Int      @id @default(autoincrement())
-  questionId Int     
+  questionId Int
   userId     Int
   text       String
   file_url   String?
