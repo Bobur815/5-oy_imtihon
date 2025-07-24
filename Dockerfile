@@ -16,6 +16,8 @@ RUN npx prisma generate
 # 4. Copy source code
 COPY src ./src
 
+COPY uploads ./uploads
+
 # 5. Build your Nest app
 RUN npm run build   # now tsconfig.json is present, so this will succeed
 
@@ -36,6 +38,8 @@ COPY --from=builder /app/prisma ./prisma
 
 # 4. Copy the compiled app
 COPY --from=builder /app/dist ./dist
+
+COPY --from=builder /app/uploads ./uploads
 
 EXPOSE 3000
 CMD ["node", "dist/main.js"]

@@ -21,6 +21,9 @@ import { ExamModule } from './core/modules/exam/exam.module';
 import { ExamResultModule } from './core/modules/exam-result/exam-result.module';
 import { QuestionsModule } from './core/modules/questions/questions.module';
 import { QuestionAnswerModule } from './core/modules/question-answer/question-answer.module';
+import { PaymentsModule } from './core/modules/payments/payments.module';
+import { join } from 'path';
+import { ServeStaticModule } from '@nestjs/serve-static';
 @Module({
   imports: [
     AuthModule,
@@ -29,7 +32,7 @@ import { QuestionAnswerModule } from './core/modules/question-answer/question-an
     RedisModule,
     VerificationModule,
     ConfigModule.forRoot({
-      isGlobal:true
+      isGlobal: true
     }),
     CourseCategoryModule,
     CourseModule,
@@ -46,8 +49,43 @@ import { QuestionAnswerModule } from './core/modules/question-answer/question-an
     ExamResultModule,
     QuestionsModule,
     QuestionAnswerModule,
+    PaymentsModule,
+    ServeStaticModule.forRoot(
+      {
+        rootPath: join(__dirname, '..', 'uploads/avatars'),
+        serveRoot: '/',    
+      },
+      {
+        rootPath: join(__dirname, '..', 'uploads/course-files'),
+        serveRoot: '/',
+      },
+      {
+        rootPath: join(__dirname, '..', 'uploads/homework-files'),
+        serveRoot: '/',
+      },
+      {
+        rootPath: join(__dirname, '..', 'uploads/homework-submission-files'),
+        serveRoot: '/'
+      },
+      {
+        rootPath: join(__dirname, '..', 'uploads/lesson-files'),
+        serveRoot: '/'
+      },
+      {
+        rootPath: join(__dirname, '..', 'uploads/lesson-videos'),
+        serveRoot: '/'
+      },
+      {
+        rootPath: join(__dirname, '..', 'uploads/question-answer-files'),
+        serveRoot: '/'
+      },
+      {
+        rootPath: join(__dirname, '..', 'uploads/questions-files'),
+        serveRoot: '/'
+      },
+    ),
   ],
   controllers: [],
   providers: [AdminSeeder],
 })
-export class AppModule {}
+export class AppModule { }

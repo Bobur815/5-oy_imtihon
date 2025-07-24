@@ -1,14 +1,14 @@
 import {
   BadRequestException,
   HttpStatus,
-  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { PaidVia, Role, Transaction } from '@prisma/client';
 import { CreatePaymentDto } from './dto/create-payment.dto';
 import { PrismaService } from 'src/core/database/prisma.service';
-import { PaymeAccountRecord,
+import {
+  PaymeAccountRecord,
   PaymeErrorCode,
   PaymeErrorResponse,
   PaymeMethods,
@@ -18,18 +18,19 @@ import { PaymeAccountRecord,
   PaymeResponses,
   PaymeTransaction,
   PaymeTransactionReason,
-  PaymeTransactionState, } from 'src/common/types/payme';
+  PaymeTransactionState,
+} from 'src/common/types/payme';
 import { RequestWithUser } from 'src/common/types/request-with-user';
-import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { amountToPenny, pennyToAmount } from 'src/common/types/penny';
 import { getInMills, validateWithinMinutes } from 'src/common/utils/time-utils';
+import { RedisService } from 'src/common/redis/redis.service';
 
 @Injectable()
 export class PaymentsService {
   constructor(
     private prisma: PrismaService,
-    @Inject(CACHE_MANAGER) private cacheStore: Cache,
-  ) {}
+    private readonly redisService: RedisService,
+  ) { }
 
   private MERCHANT_ID = process.env.PAYME_MERCHANT_ID as string;
   private MERCHANT_KEY = process.env.PAYME_KEY as string;
@@ -62,7 +63,7 @@ export class PaymentsService {
         course.price.toString(),
       )};ac.course_id=${course.id};ac.user_id=${authUser.id}`,
     ).toString('base64');
-    return this.$paymeCheckoutUrl + checkoutPayload;  
+    return this.$paymeCheckoutUrl + checkoutPayload;
   }
 
   private validateUserId(id: string): PaymeErrorResponse | Record<any, any> {
