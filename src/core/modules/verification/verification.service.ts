@@ -30,11 +30,10 @@ export class VerificationService {
         key += phone
         return key
     }
-
     private getMessage(type: EVerificationTypes, otp: string){
         switch (type){
             case EVerificationTypes.REGISTER:
-                return `O'quv platformasidan ro'yxatdan o'tish uchun kod: ${otp}. Kodni hech kimga bermang`
+                return `Fixoo platformasidan ro'yxatdan o'tish uchun tasdiqlash kodi: ${otp}. Kodni hech kimga bermang!`
             case EVerificationTypes.RESET_PASSWORD:
                 return `O'quv platformasida parolingizni tiklash uchun kod: ${otp}. Kodni hech kimga bermang`
             case EVerificationTypes.EDIT_PHONE:
@@ -89,6 +88,7 @@ export class VerificationService {
 
         const otp = generateOtp();
         await this.redis.set(key, JSON.stringify(otp), 600);
+        
         await this.smsService.sendSMS(this.getMessage(type, otp), phone)
         return { message: 'Confirmation code sent'}
     }

@@ -28,12 +28,12 @@ export class SmsService {
       );
 
       const token = authResp.data.data.token;
-
+      
       await this.$axios.post<SMSSendResponse>(
         '/message/sms/send',
         {
           from:         this.$from,
-          message: 'This is test from Eskiz',
+          message,
           mobile_phone: to.replace(/\s+/g, ''), 
           callback_url: this.CALLBACK_URL,
         },
@@ -48,9 +48,8 @@ export class SmsService {
             const axiosErr  = err as AxiosError;
             const status    = axiosErr.response?.status ?? HttpStatus.INTERNAL_SERVER_ERROR;
             const data      = axiosErr.response?.data;
-            // log the full payload the API returned
             this.logger.error('SMS send failed response body:', data);
-            throw new HttpException(`SMS Service: ${message}`, status);
+            throw new HttpException(`SMS Service: ${err.message}`, status);
     }
 
       this.logger.error('SMS Service unknown error', err);
