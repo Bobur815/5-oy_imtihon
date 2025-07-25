@@ -11,12 +11,12 @@ export class SmsService {
   private readonly URL = process.env.SMS_URL;
   private readonly USERNAME = process.env.SMS_LOGIN;
   private readonly CALLBACK_URL = process.env.SMS_CALLBACK_URL;
-
+  
   private $axios = axios.create({
     baseURL: this.URL,
     timeout: 5000, 
   });
-
+  
   public async sendSMS(message: string, to: string): Promise<boolean> {
     try {
       const authResp = await this.$axios.post<{ data: { token: string } }>(

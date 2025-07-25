@@ -63,11 +63,11 @@ export class AuthService {
     }
 
     async register(payload: RegisterDto) {
-        // await this.verificationService.checkConfirmOtp({
-        //     type:  EVerificationTypes.REGISTER,
-        //     phone: payload.phone,
-        //     otp:   payload.otpCode,     
-        // });
+        await this.verificationService.checkConfirmOtp({
+            type:  EVerificationTypes.REGISTER,
+            phone: payload.phone,
+            otp:   payload.otpCode,     
+        });
 
         const hash_password = await bcrypt.hash(payload.password, 10)
         await this.prisma.user.create({
