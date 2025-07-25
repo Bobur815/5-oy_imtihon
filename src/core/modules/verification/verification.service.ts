@@ -47,9 +47,9 @@ export class VerificationService {
                 phone: phone
             }
         })
-        // if(user){
-        //     throw new HttpException('Phone already used',HttpStatus.BAD_REQUEST)
-        // }
+        if(user){
+            throw new HttpException('Phone already used',HttpStatus.BAD_REQUEST)
+        }
         return user
     }
 
@@ -70,9 +70,9 @@ export class VerificationService {
         const key = this.getKey(type, phone)
         const session = await this.redis.get(key)
 
-        // if(session){
-        //     throw new HttpException('Code already sent to user', HttpStatus.BAD_REQUEST)
-        // }
+        if(session){
+            throw new HttpException('Code already sent to user', HttpStatus.BAD_REQUEST)
+        }
 
         switch(type) {
             case EVerificationTypes.REGISTER:
